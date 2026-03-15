@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Browser Info Dashboard</title>
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      background: #121212;
+      color: #eee;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #1f1f1f;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      border-bottom: 2px solid #333;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #1e1e1e;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      margin: 15px;
+      padding: 20px;
+      width: 300px;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.05);
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 1.2em;
+      color: #00bcd4;
+    }
+    .info {
+      font-size: 0.95em;
+      line-height: 1.5em;
+    }
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 0.8em;
+      color: #aaa;
+    }
+    .toggle {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: #00bcd4;
+      color: #000;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>🔍 What Your Browser Knows About You</header>
+  <button class="toggle" onclick="toggleTheme()">Toggle Theme</button>
+  <div class="container">
+    <div class="card" id="system"></div>
+    <div class="card" id="hardware"></div>
+    <div class="card" id="network"></div>
+    <div class="card" id="battery"></div>
+    <div class="card" id="other"></div>
+  </div>
+  <footer>Made for awareness: browsers can access this info via JavaScript APIs.</footer>
+
+  <script>
+    function addInfo(id, title, content) {
+      document.getElementById(id).innerHTML = `<h2>${title}</h2><div class="info">${content}</div>`;
+    }
+
+    // System Info
+    addInfo("system", "System", `
+      Browser: ${navigator.userAgent}<br>
+      Platform: ${navigator.platform}<br>
+      Language: ${navigator.language}<br>
+      Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}<br>
+      Screen: ${screen.width} x ${screen.height}, ${screen.colorDepth}-bit
+    `);
+
+    // Hardware Info
+    addInfo("hardware", "Hardware", `
+      CPU Cores: ${navigator.hardwareConcurrency || "N/A"}<br>
+      RAM: ${navigator.deviceMemory || "N/A"} GB<br>
+      Pixel Ratio: ${window.devicePixelRatio}
+    `);
+
+    // Network Info
+    let netInfo = "Not available";
+    if (navigator.connection) {
+      netInfo = `
+        Type: ${navigator.connection.effectiveType}<br>
+        Downlink: ${navigator.connection.downlink} Mbps<br>
+        RTT: ${navigator.connection.rtt} ms
+      `;
+    }
+    addInfo("network", "Network", netInfo);
+
+    // Battery Info
+    if (navigator.getBattery) {
+      navigator.getBattery().then(b => {
+        addInfo("battery", "Battery", `
+          Level: ${(b.level * 100)}%<br>
+          Charging: ${b.charging}
+        `);
+      });
+    } else {
+      addInfo("battery", "Battery", "Not available");
+    }
+
+    // Other Info
+    addInfo("other", "Other", `
+      Cookies Enabled: ${navigator.cookieEnabled}<br>
+      Local Storage: ${typeof localStorage !== "undefined"}<br>
+      Session Storage: ${typeof sessionStorage !== "undefined"}
+    `);
+
+    // Theme Toggle
+    function toggleTheme() {
+      if (document.body.style.background === "white") {
+        document.body.style.background = "#121212";
+        document.body.style.color = "#eee";
+        document.querySelectorAll(".card").forEach(c => c.style.background = "#1e1e1e");
+      } else {
+        document.body.style.background = "white";
+        document.body.style.color = "#000";
+        document.querySelectorAll(".card").forEach(c => c.style.background = "#f9f9f9");
+      }
+    }
+  </script>
+</body>
+</html>
