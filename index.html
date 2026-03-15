@@ -2,93 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>YourInfo – Spider‑Man Theme</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <title>Browser Info Dashboard</title>
   <style>
-    :root {
-      --spidey-red: #e50914;
-      --spidey-blue: #0d47a1;
-      --spidey-black: #111;
-      --spidey-white: #fff;
-    }
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, var(--spidey-red), var(--spidey-blue));
-      color: var(--spidey-white);
+      font-family: Inter, sans-serif;
+      background: #121212;
+      color: #eee;
       margin: 0;
       padding: 0;
       transition: background 0.3s, color 0.3s;
     }
     header {
-      font-family: 'Bangers', cursive;
-      background: var(--spidey-black);
-      color: var(--spidey-red);
-      padding: 25px;
+      background: #1f1f1f;
+      padding: 20px;
       text-align: center;
-      font-size: 2em;
-      letter-spacing: 2px;
-      border-bottom: 4px solid var(--spidey-blue);
-      text-shadow: 2px 2px var(--spidey-blue);
+      font-size: 1.5em;
+      font-weight: bold;
+      border-bottom: 2px solid #333;
+      transition: background 0.3s, color 0.3s;
     }
     .container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       padding: 20px;
     }
     .card {
-      background: rgba(17,17,17,0.9);
-      border: 2px solid var(--spidey-red);
-      border-radius: 12px;
-      box-shadow: 0 0 12px var(--spidey-blue);
+      background: #1e1e1e;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      margin: 15px;
       padding: 20px;
-      transition: transform 0.2s, box-shadow 0.3s;
+      width: 300px;
+      transition: transform 0.2s, background 0.3s, color 0.3s;
     }
     .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 0 20px var(--spidey-red);
+      transform: scale(1.05);
     }
     h2 {
       margin-top: 0;
-      font-family: 'Bangers', cursive;
-      font-size: 1.4em;
-      color: var(--spidey-red);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-shadow: 1px 1px var(--spidey-blue);
+      font-size: 1.2em;
+      color: #00bcd4;
     }
     .info {
       font-size: 0.95em;
       line-height: 1.5em;
-      color: var(--spidey-white);
     }
     footer {
       text-align: center;
       padding: 15px;
-      font-size: 0.9em;
-      background: var(--spidey-black);
-      color: var(--spidey-blue);
-      font-family: 'Bangers', cursive;
-      letter-spacing: 1px;
+      font-size: 0.8em;
+      color: #aaa;
     }
     .toggle {
       position: fixed;
       top: 15px;
       right: 15px;
-      background: var(--spidey-blue);
-      color: var(--spidey-white);
+      background: #00bcd4;
+      color: #000;
       border: none;
       padding: 10px 15px;
       border-radius: 5px;
       cursor: pointer;
-      font-weight: bold;
-      box-shadow: 0 0 8px var(--spidey-red);
     }
   </style>
 </head>
 <body>
-  <header>🕸️ YourInfo – Spider‑Man Edition 🕷️</header>
+  <header>🔍 What Your Browser Knows About You</header>
   <button class="toggle" onclick="toggleTheme()">Toggle Theme</button>
   <div class="container">
     <div class="card" id="system"></div>
@@ -100,49 +80,139 @@
     <div class="card" id="gpu"></div>
     <div class="card" id="devices"></div>
     <div class="card" id="orientation"></div>
-    <div class="card" id="storage"></div>
-    <div class="card" id="permissions"></div>
     <div class="card" id="other"></div>
   </div>
-  <footer>🕷️ With great power comes great responsibility – know your browser’s power!</footer>
+  <footer>Made for awareness: browsers can access this info via JavaScript APIs.</footer>
 
   <script>
-    function addInfo(id, title, content, icon="ℹ️") {
-      document.getElementById(id).innerHTML = `<h2>${icon} ${title}</h2><div class="info">${content}</div>`;
+    function addInfo(id, title, content) {
+      document.getElementById(id).innerHTML = `<h2>${title}</h2><div class="info">${content}</div>`;
     }
 
-    // Example: System Info
+    // System Info
     addInfo("system", "System", `
       Browser: ${navigator.userAgent}<br>
       Platform: ${navigator.platform}<br>
-      Languages: ${navigator.languages.join(", ")}<br>
+      Language: ${navigator.language}<br>
       Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}<br>
       Screen: ${screen.width} x ${screen.height}, ${screen.colorDepth}-bit
-    `, "💻");
+    `);
 
-    // (Keep the rest of your JS info-gathering code from the previous version)
-    // Theme toggle (switch between Spidey dark and light)
+    // Hardware Info
+    addInfo("hardware", "Hardware", `
+      CPU Cores: ${navigator.hardwareConcurrency || "N/A"}<br>
+      RAM: ${navigator.deviceMemory || "N/A"} GB<br>
+      Pixel Ratio: ${window.devicePixelRatio}
+    `);
+
+    // Network Info
+    let netInfo = "Not available";
+    if (navigator.connection) {
+      netInfo = `
+        Type: ${navigator.connection.effectiveType}<br>
+        Downlink: ${navigator.connection.downlink} Mbps<br>
+        RTT: ${navigator.connection.rtt} ms
+      `;
+    }
+    addInfo("network", "Network", netInfo);
+
+    // Battery Info
+    if (navigator.getBattery) {
+      navigator.getBattery().then(b => {
+        addInfo("battery", "Battery", `
+          Level: ${(b.level * 100)}%<br>
+          Charging: ${b.charging}
+        `);
+      });
+    } else {
+      addInfo("battery", "Battery", "Not available");
+    }
+
+    // Geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        addInfo("location", "Location", `
+          Latitude: ${pos.coords.latitude}<br>
+          Longitude: ${pos.coords.longitude}<br>
+          Accuracy: ${pos.coords.accuracy} meters
+        `);
+      }, () => {
+        addInfo("location", "Location", "Permission denied or unavailable");
+      });
+    }
+
+    // Public IP
+    fetch("https://ipinfo.io/json?token=YOUR_TOKEN_HERE") // optional: add free token
+      .then(res => res.json())
+      .then(data => {
+        addInfo("ip", "Public IP", `
+          IP: ${data.ip}<br>
+          City: ${data.city}<br>
+          Region: ${data.region}<br>
+          Country: ${data.country}<br>
+          ISP: ${data.org}
+        `);
+      }).catch(() => {
+        addInfo("ip", "Public IP", "Unable to fetch");
+      });
+
+    // GPU Info
+    try {
+      const canvas = document.createElement("canvas");
+      const gl = canvas.getContext("webgl");
+      const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+      const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+      const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+      addInfo("gpu", "GPU", `Vendor: ${vendor}<br>Renderer: ${renderer}`);
+    } catch {
+      addInfo("gpu", "GPU", "Not available");
+    }
+
+    // Media Devices
+    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+      navigator.mediaDevices.enumerateDevices().then(devices => {
+        addInfo("devices", "Media Devices", devices.map(d => `${d.kind}: ${d.label || "Unknown"}`).join("<br>"));
+      });
+    }
+
+    // Orientation
+    window.addEventListener("deviceorientation", e => {
+      addInfo("orientation", "Orientation", `
+        Alpha: ${e.alpha}<br>
+        Beta: ${e.beta}<br>
+        Gamma: ${e.gamma}
+      `);
+    });
+
+    // Other Info
+    addInfo("other", "Other", `
+      Cookies Enabled: ${navigator.cookieEnabled}<br>
+      Local Storage: ${typeof localStorage !== "undefined"}<br>
+      Session Storage: ${typeof sessionStorage !== "undefined"}
+    `);
+
+    // Theme Toggle
     function toggleTheme() {
-      const isDark = document.body.style.background.includes("var(--spidey-red)");
-      if (isDark) {
-        document.body.style.background = "white";
-        document.body.style.color = "black";
-        document.querySelector("header").style.background = "#eee";
-        document.querySelector("header").style.color = "#0d47a1";
+      const isLight = document.body.style.background === "white";
+      if (isLight) {
+        // Dark mode
+        document.body.style.background = "#121212";
+        document.body.style.color = "#eee";
+        document.querySelector("header").style.background = "#1f1f1f";
+        document.querySelector("header").style.color = "#eee";
         document.querySelectorAll(".card").forEach(c => {
-          c.style.background = "#fff";
-          c.style.color = "#000";
-          c.style.border = "2px solid #0d47a1";
+          c.style.background = "#1e1e1e";
+          c.style.color = "#eee";
         });
       } else {
-        document.body.style.background = `linear-gradient(135deg, var(--spidey-red), var(--spidey-blue))`;
-        document.body.style.color = "var(--spidey-white)";
-        document.querySelector("header").style.background = "var(--spidey-black)";
-        document.querySelector("header").style.color = "var(--spidey-red)";
+        // Light mode
+        document.body.style.background = "white";
+        document.body.style.color = "#000";
+        document.querySelector("header").style.background = "#f0f0f0";
+        document.querySelector("header").style.color = "#000";
         document.querySelectorAll(".card").forEach(c => {
-          c.style.background = "rgba(17,17,17,0.9)";
-          c.style.color = "var(--spidey-white)";
-          c.style.border = "2px solid var(--spidey-red)";
+          c.style.background = "#f9f9f9";
+          c.style.color = "#000";
         });
       }
     }
