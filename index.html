@@ -10,6 +10,7 @@
       color: #eee;
       margin: 0;
       padding: 0;
+      transition: background 0.3s, color 0.3s;
     }
     header {
       background: #1f1f1f;
@@ -18,6 +19,7 @@
       font-size: 1.5em;
       font-weight: bold;
       border-bottom: 2px solid #333;
+      transition: background 0.3s, color 0.3s;
     }
     .container {
       display: flex;
@@ -32,7 +34,7 @@
       margin: 15px;
       padding: 20px;
       width: 300px;
-      transition: transform 0.2s;
+      transition: transform 0.2s, background 0.3s, color 0.3s;
     }
     .card:hover {
       transform: scale(1.05);
@@ -73,6 +75,11 @@
     <div class="card" id="hardware"></div>
     <div class="card" id="network"></div>
     <div class="card" id="battery"></div>
+    <div class="card" id="location"></div>
+    <div class="card" id="ip"></div>
+    <div class="card" id="gpu"></div>
+    <div class="card" id="devices"></div>
+    <div class="card" id="orientation"></div>
     <div class="card" id="other"></div>
   </div>
   <footer>Made for awareness: browsers can access this info via JavaScript APIs.</footer>
@@ -121,6 +128,62 @@
       addInfo("battery", "Battery", "Not available");
     }
 
+    // Geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        addInfo("location", "Location", `
+          Latitude: ${pos.coords.latitude}<br>
+          Longitude: ${pos.coords.longitude}<br>
+          Accuracy: ${pos.coords.accuracy} meters
+        `);
+      }, () => {
+        addInfo("location", "Location", "Permission denied or unavailable");
+      });
+    }
+
+    // Public IP
+    fetch("https://ipinfo.io/json?token=YOUR_TOKEN_HERE") // optional: add free token
+      .then(res => res.json())
+      .then(data => {
+        addInfo("ip", "Public IP", `
+          IP: ${data.ip}<br>
+          City: ${data.city}<br>
+          Region: ${data.region}<br>
+          Country: ${data.country}<br>
+          ISP: ${data.org}
+        `);
+      }).catch(() => {
+        addInfo("ip", "Public IP", "Unable to fetch");
+      });
+
+    // GPU Info
+    try {
+      const canvas = document.createElement("canvas");
+      const gl = canvas.getContext("webgl");
+      const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+      const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+      const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+      addInfo("gpu", "GPU", `Vendor: ${vendor}<br>Renderer: ${renderer}`);
+    } catch {
+      addInfo("gpu", "GPU", "Not available");
+    }
+
+    // Media Devices
+    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+      navigator.mediaDevices.enumerateDevices().then(devices => {
+        addInfo("devices", "Media Devices", devices.map(d => `${d.kind}: ${d.label || "Unknown"}`).join("<br>"));
+      });
+    }
+
+    // Orientation
+    window.addEventListener("deviceorientation", e => {
+      addInfo("orientation", "Orientation", `
+        Alpha: ${e.alpha}<br>
+        Beta: ${e.beta}<br>
+        Gamma: ${e.gamma}
+      `);
+    });
+
     // Other Info
     addInfo("other", "Other", `
       Cookies Enabled: ${navigator.cookieEnabled}<br>
@@ -130,14 +193,27 @@
 
     // Theme Toggle
     function toggleTheme() {
-      if (document.body.style.background === "white") {
+      const isLight = document.body.style.background === "white";
+      if (isLight) {
+        // Dark mode
         document.body.style.background = "#121212";
         document.body.style.color = "#eee";
-        document.querySelectorAll(".card").forEach(c => c.style.background = "#1e1e1e");
+        document.querySelector("header").style.background = "#1f1f1f";
+        document.querySelector("header").style.color = "#eee";
+        document.querySelectorAll(".card").forEach(c => {
+          c.style.background = "#1e1e1e";
+          c.style.color = "#eee";
+        });
       } else {
+        // Light mode
         document.body.style.background = "white";
         document.body.style.color = "#000";
-        document.querySelectorAll(".card").forEach(c => c.style.background = "#f9f9f9");
+        document.querySelector("header").style.background = "#f0f0f0";
+        document.querySelector("header").style.color = "#000";
+        document.querySelectorAll(".card").forEach(c => {
+          c.style.background = "#f9f9f9";
+          c.style.color = "#000";
+        });
       }
     }
   </script>
