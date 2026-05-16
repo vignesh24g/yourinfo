@@ -2,220 +2,1075 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Browser Info Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YourInfo — What Your Browser Knows</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #050508;
+      --surface: #0d0d12;
+      --surface2: #13131a;
+      --border: rgba(255,255,255,0.07);
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --accent3: #f59e0b;
+      --danger: #ef4444;
+      --text: #f1f0fb;
+      --muted: #6b7280;
+      --glow: rgba(124,58,237,0.15);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      font-family: Inter, sans-serif;
-      background: #121212;
-      color: #eee;
-      margin: 0;
-      padding: 0;
-      transition: background 0.3s, color 0.3s;
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: none;
     }
-    header {
-      background: #1f1f1f;
-      padding: 20px;
-      text-align: center;
-      font-size: 1.5em;
-      font-weight: bold;
-      border-bottom: 2px solid #333;
-      transition: background 0.3s, color 0.3s;
-    }
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 20px;
-    }
-    .card {
-      background: #1e1e1e;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      margin: 15px;
-      padding: 20px;
-      width: 300px;
-      transition: transform 0.2s, background 0.3s, color 0.3s;
-    }
-    .card:hover {
-      transform: scale(1.05);
-    }
-    h2 {
-      margin-top: 0;
-      font-size: 1.2em;
-      color: #00bcd4;
-    }
-    .info {
-      font-size: 0.95em;
-      line-height: 1.5em;
-    }
-    footer {
-      text-align: center;
-      padding: 15px;
-      font-size: 0.8em;
-      color: #aaa;
-    }
-    .toggle {
+
+    /* Custom Cursor */
+    #cursor {
       position: fixed;
-      top: 15px;
-      right: 15px;
-      background: #00bcd4;
-      color: #000;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: pointer;
+      width: 12px; height: 12px;
+      background: var(--accent2);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+      mix-blend-mode: difference;
     }
+    #cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--accent2);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%,-50%);
+      transition: transform 0.15s ease-out, width 0.3s, height 0.3s;
+      opacity: 0.5;
+    }
+
+    /* Animated background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -30%; left: 10%;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      animation: driftBlob 18s ease-in-out infinite alternate;
+    }
+    @keyframes driftBlob {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(120px, 80px) scale(1.2); }
+    }
+
+    /* HEADER */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 56px 40px 36px;
+      text-align: center;
+    }
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      color: var(--accent2);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.1s forwards;
+    }
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.4rem, 6vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.25s forwards;
+    }
+    .subtitle {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      max-width: 520px;
+      margin-inline: auto;
+      line-height: 1.7;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.4s forwards;
+    }
+
+    /* Privacy Score Banner */
+    .score-bar {
+      position: relative;
+      z-index: 10;
+      max-width: 500px;
+      margin: 28px auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 28px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.55s forwards;
+    }
+    .score-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+    .score-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--danger);
+    }
+    .score-track {
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .score-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent2), var(--danger));
+      transition: width 1.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    .score-note {
+      margin-top: 8px;
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Nav Pills */
+    .nav-pills {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 14px 20px;
+      background: rgba(5,5,8,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      opacity: 0;
+      animation: fadeDown 0.6s 0.7s forwards;
+    }
+    .pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      padding: 6px 14px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: none;
+      transition: all 0.2s;
+    }
+    .pill:hover, .pill.active {
+      border-color: var(--accent);
+      color: var(--text);
+      background: rgba(124,58,237,0.15);
+    }
+
+    /* Grid */
+    .container {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      padding: 32px 32px 48px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+      animation: cardIn 0.5s forwards;
+    }
+    .card:nth-child(1)  { animation-delay: 0.1s; }
+    .card:nth-child(2)  { animation-delay: 0.15s; }
+    .card:nth-child(3)  { animation-delay: 0.2s; }
+    .card:nth-child(4)  { animation-delay: 0.25s; }
+    .card:nth-child(5)  { animation-delay: 0.3s; }
+    .card:nth-child(6)  { animation-delay: 0.35s; }
+    .card:nth-child(7)  { animation-delay: 0.4s; }
+    .card:nth-child(8)  { animation-delay: 0.45s; }
+    .card:nth-child(9)  { animation-delay: 0.5s; }
+    .card:nth-child(10) { animation-delay: 0.55s; }
+    .card:nth-child(11) { animation-delay: 0.6s; }
+    .card:nth-child(12) { animation-delay: 0.65s; }
+    .card:nth-child(13) { animation-delay: 0.7s; }
+    .card:nth-child(14) { animation-delay: 0.75s; }
+
+    @keyframes cardIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(124,58,237,0.12) 0%, transparent 60%);
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .card:hover::before { opacity: 1; }
+    .card:hover {
+      border-color: rgba(124,58,237,0.4);
+      box-shadow: 0 0 32px rgba(124,58,237,0.08);
+      transform: translateY(-2px);
+    }
+
+    /* Card accent line */
+    .card-accent {
+      position: absolute;
+      top: 0; left: 24px; right: 24px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-color, var(--accent)), transparent);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .card-icon {
+      font-size: 1.1rem;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .risk-badge {
+      margin-left: auto;
+      font-size: 0.6rem;
+      padding: 3px 8px;
+      border-radius: 99px;
+      letter-spacing: 0.1em;
+      font-weight: 500;
+    }
+    .risk-high   { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .risk-med    { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .risk-low    { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+
+    /* Info rows */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      gap: 12px;
+      font-size: 0.78rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-key {
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .info-val {
+      color: var(--text);
+      text-align: right;
+      word-break: break-all;
+      max-width: 200px;
+    }
+    .info-val.accent  { color: var(--accent2); }
+    .info-val.warn    { color: var(--accent3); }
+    .info-val.danger  { color: var(--danger); }
+    .info-val.success { color: #34d399; }
+
+    /* Pill tags */
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .tag {
+      font-size: 0.68rem;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    /* Loading skeleton */
+    .skel {
+      height: 12px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--surface2) 25%, rgba(255,255,255,0.06) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      margin: 6px 0;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* Battery bar */
+    .battery-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .battery-icon {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .battery-body {
+      width: 46px; height: 22px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      position: relative;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+    }
+    .battery-body::after {
+      content: '';
+      position: absolute;
+      right: -6px;
+      top: 50%; transform: translateY(-50%);
+      width: 4px; height: 10px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 0 2px 2px 0;
+    }
+    .battery-fill {
+      height: 100%;
+      background: #34d399;
+      border-radius: 2px;
+      transition: width 0.8s ease;
+    }
+    .battery-pct {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    /* Fingerprint card */
+    #fingerprint .fp-hash {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent2);
+      word-break: break-all;
+      background: rgba(6,182,212,0.07);
+      border: 1px solid rgba(6,182,212,0.2);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    /* Canvas fingerprint */
+    canvas#fpcanvas { display: none; }
+
+    /* Copy button */
+    .copy-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      margin-top: 14px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      cursor: none;
+      transition: all 0.2s;
+      letter-spacing: 0.08em;
+    }
+    .copy-btn:hover {
+      background: rgba(124,58,237,0.15);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    /* Education callout */
+    .edu-callout {
+      background: rgba(245,158,11,0.07);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.72rem;
+      color: #fbbf24;
+      line-height: 1.6;
+      margin-top: 14px;
+    }
+    .edu-callout strong { color: var(--accent3); }
+
+    /* Fullwidth card */
+    .card.wide { grid-column: span 2; }
+    @media (max-width: 768px) { .card.wide { grid-column: span 1; } }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 32px 20px 48px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.8;
+    }
+    footer a { color: var(--accent2); text-decoration: none; }
+
+    /* Animations */
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+
+    /* Tooltip */
+    [data-tip] {
+      position: relative;
+    }
+    [data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e1e2e;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.65rem;
+      padding: 5px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    /* Live indicator */
+    .live-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #34d399;
+      margin-right: 6px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
+      50%       { box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 99px; }
   </style>
 </head>
 <body>
-  <header>🔍 What Your Browser Knows About You</header>
-  <button class="toggle" onclick="toggleTheme()">Toggle Theme</button>
-  <div class="container">
-    <div class="card" id="system"></div>
-    <div class="card" id="hardware"></div>
-    <div class="card" id="network"></div>
-    <div class="card" id="battery"></div>
-    <div class="card" id="location"></div>
-    <div class="card" id="ip"></div>
-    <div class="card" id="gpu"></div>
-    <div class="card" id="devices"></div>
-    <div class="card" id="orientation"></div>
-    <div class="card" id="other"></div>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<canvas id="fpcanvas" width="200" height="50"></canvas>
+
+<header>
+  <div class="eyebrow">// browser transparency report</div>
+  <h1>What Your Browser<br>Knows About You</h1>
+  <p class="subtitle">Every website you visit can silently collect this data. No installs. No login. Just your browser.</p>
+  <div class="score-bar">
+    <div class="score-label">
+      <span>EXPOSURE SCORE</span>
+      <span class="score-value" id="scoreNum">—</span>
+    </div>
+    <div class="score-track"><div class="score-fill" id="scoreFill"></div></div>
+    <div class="score-note">Based on data points accessible via standard browser APIs</div>
   </div>
-  <footer>Made for awareness: browsers can access this info via JavaScript APIs.</footer>
+</header>
 
-  <script>
-    function addInfo(id, title, content) {
-      document.getElementById(id).innerHTML = `<h2>${title}</h2><div class="info">${content}</div>`;
+<nav class="nav-pills">
+  <button class="pill active" onclick="filterCards('all')">ALL</button>
+  <button class="pill" onclick="filterCards('system')">SYSTEM</button>
+  <button class="pill" onclick="filterCards('hardware')">HARDWARE</button>
+  <button class="pill" onclick="filterCards('network')">NETWORK</button>
+  <button class="pill" onclick="filterCards('identity')">IDENTITY</button>
+  <button class="pill" onclick="filterCards('sensors')">SENSORS</button>
+  <button class="pill" onclick="filterCards('storage')">STORAGE</button>
+</nav>
+
+<div class="container">
+
+  <!-- 1. System Info -->
+  <div class="card" data-cat="system">
+    <div class="card-accent" style="--accent-color:#7c3aed"></div>
+    <div class="card-header">
+      <div class="card-icon">🖥️</div>
+      <div class="card-title">System</div>
+      <span class="risk-badge risk-med">MEDIUM</span>
+    </div>
+    <div id="system-info"></div>
+    <div class="edu-callout">Websites fingerprint you using OS, language and timezone combos — even without cookies.</div>
+  </div>
+
+  <!-- 2. Browser Details -->
+  <div class="card" data-cat="system">
+    <div class="card-accent" style="--accent-color:#8b5cf6"></div>
+    <div class="card-header">
+      <div class="card-icon">🌐</div>
+      <div class="card-title">Browser</div>
+      <span class="risk-badge risk-med">MEDIUM</span>
+    </div>
+    <div id="browser-info"></div>
+  </div>
+
+  <!-- 3. Hardware -->
+  <div class="card" data-cat="hardware">
+    <div class="card-accent" style="--accent-color:#06b6d4"></div>
+    <div class="card-header">
+      <div class="card-icon">⚙️</div>
+      <div class="card-title">Hardware</div>
+      <span class="risk-badge risk-med">MEDIUM</span>
+    </div>
+    <div id="hardware-info"></div>
+    <div class="edu-callout">CPU cores & RAM are deliberately rounded by browsers to limit fingerprinting accuracy.</div>
+  </div>
+
+  <!-- 4. GPU -->
+  <div class="card" data-cat="hardware">
+    <div class="card-accent" style="--accent-color:#a855f7"></div>
+    <div class="card-header">
+      <div class="card-icon">🎮</div>
+      <div class="card-title">GPU</div>
+      <span class="risk-badge risk-high">HIGH RISK</span>
+    </div>
+    <div id="gpu-info"></div>
+    <div class="edu-callout">GPU info is highly unique — it's a core component of canvas fingerprinting.</div>
+  </div>
+
+  <!-- 5. Network -->
+  <div class="card" data-cat="network">
+    <div class="card-accent" style="--accent-color:#06b6d4"></div>
+    <div class="card-header">
+      <div class="card-icon">📡</div>
+      <div class="card-title">Network</div>
+      <span class="risk-badge risk-med">MEDIUM</span>
+    </div>
+    <div id="network-info"></div>
+  </div>
+
+  <!-- 6. Public IP -->
+  <div class="card" data-cat="network identity">
+    <div class="card-accent" style="--accent-color:#ef4444"></div>
+    <div class="card-header">
+      <div class="card-icon">🌍</div>
+      <div class="card-title">Public IP</div>
+      <span class="risk-badge risk-high">HIGH RISK</span>
+    </div>
+    <div id="ip-info"><div class="skel"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:80%"></div></div>
+    <div class="edu-callout">Your IP reveals your approximate city & ISP to every site you visit. VPNs mask this.</div>
+  </div>
+
+  <!-- 7. Battery -->
+  <div class="card" data-cat="hardware sensors">
+    <div class="card-accent" style="--accent-color:#34d399"></div>
+    <div class="card-header">
+      <div class="card-icon">🔋</div>
+      <div class="card-title">Battery</div>
+      <span class="risk-badge risk-med">MEDIUM</span>
+    </div>
+    <div id="battery-info"><div class="skel"></div></div>
+    <div class="edu-callout">Battery level was used to track users across incognito sessions — now restricted in most browsers.</div>
+  </div>
+
+  <!-- 8. Geolocation -->
+  <div class="card" data-cat="identity sensors">
+    <div class="card-accent" style="--accent-color:#f59e0b"></div>
+    <div class="card-header">
+      <div class="card-icon">📍</div>
+      <div class="card-title">Location</div>
+      <span class="risk-badge risk-high">HIGH RISK</span>
+    </div>
+    <div id="location-info">
+      <button class="copy-btn" id="locBtn" onclick="requestLocation()">▶ REQUEST LOCATION ACCESS</button>
+      <div class="edu-callout">Requires your explicit permission — but once granted, any site can track you to ±10 meters.</div>
+    </div>
+  </div>
+
+  <!-- 9. Media Devices -->
+  <div class="card" data-cat="identity hardware">
+    <div class="card-accent" style="--accent-color:#ec4899"></div>
+    <div class="card-header">
+      <div class="card-icon">🎤</div>
+      <div class="card-title">Media Devices</div>
+      <span class="risk-badge risk-high">HIGH RISK</span>
+    </div>
+    <div id="devices-info"><div class="skel"></div><div class="skel" style="width:60%"></div></div>
+    <div class="edu-callout">Device count & labels are unique identifiers. Labels require mic/camera permission.</div>
+  </div>
+
+  <!-- 10. Orientation & Motion -->
+  <div class="card" data-cat="sensors">
+    <div class="card-accent" style="--accent-color:#f59e0b"></div>
+    <div class="card-header">
+      <div class="card-icon">🧭</div>
+      <div class="card-title">Orientation <span class="live-dot"></span></div>
+      <span class="risk-badge risk-low">LOW</span>
+    </div>
+    <div id="orientation-info">
+      <div class="info-row"><span class="info-key">Alpha</span><span class="info-val" id="o-alpha">—</span></div>
+      <div class="info-row"><span class="info-key">Beta</span><span class="info-val" id="o-beta">—</span></div>
+      <div class="info-row"><span class="info-key">Gamma</span><span class="info-val" id="o-gamma">—</span></div>
+      <div class="info-row"><span class="info-key">Motion X</span><span class="info-val" id="m-x">—</span></div>
+      <div class="info-row"><span class="info-key">Motion Y</span><span class="info-val" id="m-y">—</span></div>
+    </div>
+  </div>
+
+  <!-- 11. Storage & Cookies -->
+  <div class="card" data-cat="storage">
+    <div class="card-accent" style="--accent-color:#06b6d4"></div>
+    <div class="card-header">
+      <div class="card-icon">🍪</div>
+      <div class="card-title">Storage</div>
+      <span class="risk-badge risk-med">MEDIUM</span>
+    </div>
+    <div id="storage-info"></div>
+  </div>
+
+  <!-- 12. Canvas Fingerprint -->
+  <div class="card" id="fingerprint" data-cat="identity hardware">
+    <div class="card-accent" style="--accent-color:#ef4444"></div>
+    <div class="card-header">
+      <div class="card-icon">👆</div>
+      <div class="card-title">Canvas Fingerprint</div>
+      <span class="risk-badge risk-high">HIGH RISK</span>
+    </div>
+    <div class="info-row"><span class="info-key">Unique Hash</span><span class="info-val danger" id="fp-hash">generating…</span></div>
+    <div class="fp-hash" id="fp-raw" style="font-size:0.64rem;word-break:break-all;color:var(--muted)">—</div>
+    <div class="edu-callout">Canvas fingerprinting renders invisible text and reads the pixel data. Each GPU & font combo produces a unique image — identifying you without any cookies.</div>
+  </div>
+
+  <!-- 13. Permissions -->
+  <div class="card" data-cat="identity storage">
+    <div class="card-accent" style="--accent-color:#a855f7"></div>
+    <div class="card-header">
+      <div class="card-icon">🔐</div>
+      <div class="card-title">Permissions</div>
+      <span class="risk-badge risk-high">HIGH RISK</span>
+    </div>
+    <div id="permissions-info"><div class="skel"></div><div class="skel" style="width:75%"></div><div class="skel" style="width:55%"></div></div>
+    <div class="edu-callout">Sites can silently query which permissions you've already granted — without asking again.</div>
+  </div>
+
+  <!-- 14. Fonts -->
+  <div class="card" data-cat="identity hardware">
+    <div class="card-accent" style="--accent-color:#8b5cf6"></div>
+    <div class="card-header">
+      <div class="card-icon">🔤</div>
+      <div class="card-title">Font Probe</div>
+      <span class="risk-badge risk-high">HIGH RISK</span>
+    </div>
+    <div id="fonts-info"><div class="skel"></div><div class="skel" style="width:60%"></div></div>
+    <div class="edu-callout">Installed fonts are detected by measuring text rendering widths. Your font set is a strong fingerprint signal.</div>
+  </div>
+
+</div>
+
+<footer>
+  <div>Built to raise awareness about browser-level data exposure.</div>
+  <div style="margin-top:6px;">No data is sent anywhere — everything runs locally in your browser.</div>
+  <div style="margin-top:6px; color: rgba(255,255,255,0.3);">YourInfo &nbsp;·&nbsp; Open Source &nbsp;·&nbsp; Privacy-first education</div>
+</footer>
+
+<script>
+/* ── Cursor ── */
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursor-ring');
+let cx = 0, cy = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { cx = e.clientX; cy = e.clientY; cursor.style.left = cx+'px'; cursor.style.top = cy+'px'; });
+(function animRing() {
+  rx += (cx - rx) * 0.12;
+  ry += (cy - ry) * 0.12;
+  ring.style.left = rx+'px'; ring.style.top = ry+'px';
+  requestAnimationFrame(animRing);
+})();
+document.querySelectorAll('button,.pill').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.width='6px'; cursor.style.height='6px'; ring.style.width='48px'; ring.style.height='48px'; });
+  el.addEventListener('mouseleave', () => { cursor.style.width='12px'; cursor.style.height='12px'; ring.style.width='36px'; ring.style.height='36px'; });
+});
+
+/* Card spotlight */
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width  * 100).toFixed(1);
+    const y = ((e.clientY - r.top)  / r.height * 100).toFixed(1);
+    card.style.setProperty('--mx', x + '%');
+    card.style.setProperty('--my', y + '%');
+  });
+});
+
+/* ── Helpers ── */
+function row(key, val, cls='') {
+  return `<div class="info-row"><span class="info-key">${key}</span><span class="info-val ${cls}">${val}</span></div>`;
+}
+function skel(n=3) { return Array(n).fill('<div class="skel"></div>').join(''); }
+
+/* ── Score tracker ── */
+let exposurePoints = 0;
+function addScore(pts) {
+  exposurePoints += pts;
+  const pct = Math.min(100, exposurePoints);
+  document.getElementById('scoreFill').style.width = pct + '%';
+  document.getElementById('scoreNum').textContent = pct + ' / 100';
+  const c = pct > 70 ? '#ef4444' : pct > 40 ? '#f59e0b' : '#34d399';
+  document.getElementById('scoreNum').style.color = c;
+}
+
+/* ── 1. System Info ── */
+(function() {
+  const ua   = navigator.userAgent;
+  const tz   = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const lang  = navigator.language;
+  const langs = navigator.languages ? navigator.languages.join(', ') : lang;
+  const dnt   = navigator.doNotTrack === '1' ? '✓ Enabled' : '✗ Off';
+  const tme   = new Date().toLocaleTimeString();
+  document.getElementById('system-info').innerHTML =
+    row('Timezone', tz, 'warn') +
+    row('Language', lang, 'accent') +
+    row('All Languages', langs) +
+    row('Screen', screen.width + ' × ' + screen.height) +
+    row('Color Depth', screen.colorDepth + '-bit') +
+    row('Local Time', tme) +
+    row('Do Not Track', dnt, dnt.startsWith('✓') ? 'success' : 'danger');
+  addScore(10);
+})();
+
+/* ── 2. Browser ── */
+(function() {
+  const ua = navigator.userAgent;
+  let browser = 'Unknown', bver = '';
+  if (/Edg\//.test(ua))       { browser = 'Edge';    bver = ua.match(/Edg\/([\d.]+)/)?.[1]; }
+  else if (/Chrome\//.test(ua)){ browser = 'Chrome';  bver = ua.match(/Chrome\/([\d.]+)/)?.[1]; }
+  else if (/Firefox\//.test(ua)){ browser = 'Firefox'; bver = ua.match(/Firefox\/([\d.]+)/)?.[1]; }
+  else if (/Safari\//.test(ua)) { browser = 'Safari';  bver = ua.match(/Version\/([\d.]+)/)?.[1]; }
+  let os = 'Unknown';
+  if (/Windows NT/.test(ua)) os = 'Windows';
+  else if (/Mac OS X/.test(ua)) os = 'macOS';
+  else if (/Android/.test(ua))  os = 'Android';
+  else if (/Linux/.test(ua))    os = 'Linux';
+  else if (/iPhone|iPad/.test(ua)) os = 'iOS';
+  const mobile = /Mobi|Android/i.test(ua);
+  const vendor = navigator.vendor || '—';
+  document.getElementById('browser-info').innerHTML =
+    row('Browser', `${browser} ${bver}`, 'accent') +
+    row('OS', os, 'warn') +
+    row('Mobile', mobile ? 'Yes' : 'No') +
+    row('Vendor', vendor) +
+    row('Cookies On', navigator.cookieEnabled ? 'Yes' : 'No', navigator.cookieEnabled ? 'warn' : 'success') +
+    row('Platform', navigator.platform);
+  addScore(8);
+})();
+
+/* ── 3. Hardware ── */
+(function() {
+  const cores = navigator.hardwareConcurrency || 'N/A';
+  const ram   = navigator.deviceMemory         || 'N/A';
+  const dpr   = window.devicePixelRatio;
+  const avw   = screen.availWidth;
+  const avh   = screen.availHeight;
+  const touch = navigator.maxTouchPoints;
+  document.getElementById('hardware-info').innerHTML =
+    row('CPU Cores', cores + ' (approx)', 'warn') +
+    row('RAM', ram + ' GB (approx)', 'warn') +
+    row('Device Pixel Ratio', dpr) +
+    row('Avail Screen', avw + ' × ' + avh) +
+    row('Touch Points', touch) +
+    row('JS Heap Limit', performance.memory ? (performance.memory.jsHeapSizeLimit / 1048576).toFixed(0) + ' MB' : 'N/A');
+  addScore(8);
+})();
+
+/* ── 4. GPU ── */
+(function() {
+  try {
+    const canvas = document.getElementById('fpcanvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    const di = gl.getExtension('WEBGL_debug_renderer_info');
+    const vendor   = di ? gl.getParameter(di.UNMASKED_VENDOR_WEBGL)   : 'Blocked';
+    const renderer = di ? gl.getParameter(di.UNMASKED_RENDERER_WEBGL) : 'Blocked';
+    const version  = gl.getParameter(gl.VERSION);
+    const glsl     = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
+    document.getElementById('gpu-info').innerHTML =
+      row('Vendor',   vendor,   'accent') +
+      row('Renderer', renderer, 'warn') +
+      row('WebGL',    version.split(' ')[1] || version) +
+      row('GLSL',     glsl.split(' ')[0]);
+    addScore(14);
+  } catch(e) {
+    document.getElementById('gpu-info').innerHTML = row('Status', 'Blocked by browser', 'success');
+  }
+})();
+
+/* ── 5. Network ── */
+(function() {
+  const cn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (cn) {
+    document.getElementById('network-info').innerHTML =
+      row('Effective Type', cn.effectiveType || 'N/A', 'accent') +
+      row('Downlink', (cn.downlink || 'N/A') + ' Mbps', 'warn') +
+      row('RTT', (cn.rtt || 'N/A') + ' ms') +
+      row('Save Data', cn.saveData ? 'Yes' : 'No') +
+      row('Online', navigator.onLine ? 'Yes' : 'No', 'success');
+    addScore(6);
+  } else {
+    document.getElementById('network-info').innerHTML = row('Status', 'API not available', 'muted') + row('Online', navigator.onLine ? 'Yes' : 'No');
+  }
+})();
+
+/* ── 6. Public IP ── */
+fetch('https://ipapi.co/json/')
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById('ip-info').innerHTML =
+      row('IP Address', d.ip || '—', 'danger') +
+      row('City', d.city || '—', 'warn') +
+      row('Region', d.region || '—') +
+      row('Country', (d.country_name || '—') + ' ' + (d.country_code || '')) +
+      row('ISP / Org', d.org || '—', 'accent') +
+      row('ASN', d.asn || '—') +
+      row('Postal', d.postal || '—');
+    addScore(16);
+  })
+  .catch(() => {
+    document.getElementById('ip-info').innerHTML = row('Status', 'Fetch blocked / offline', 'muted');
+  });
+
+/* ── 7. Battery ── */
+if (navigator.getBattery) {
+  navigator.getBattery().then(b => {
+    function renderBat() {
+      const pct = Math.round(b.level * 100);
+      const fillColor = pct > 50 ? '#34d399' : pct > 20 ? '#f59e0b' : '#ef4444';
+      document.getElementById('battery-info').innerHTML = `
+        <div class="battery-wrap">
+          <div class="battery-body"><div class="battery-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+          <span class="battery-pct" style="color:${fillColor}">${pct}%</span>
+        </div>` +
+        row('Charging', b.charging ? '⚡ Yes' : 'No', b.charging ? 'success' : '') +
+        row('Time to Full', b.chargingTime === Infinity ? 'N/A' : b.chargingTime + 's') +
+        row('Time to Empty', b.dischargingTime === Infinity ? 'N/A' : b.dischargingTime + 's');
     }
+    renderBat();
+    b.addEventListener('levelchange', renderBat);
+    b.addEventListener('chargingchange', renderBat);
+    addScore(5);
+  });
+} else {
+  document.getElementById('battery-info').innerHTML = row('Status', 'API removed (privacy)', 'success');
+}
 
-    // System Info
-    addInfo("system", "System", `
-      Browser: ${navigator.userAgent}<br>
-      Platform: ${navigator.platform}<br>
-      Language: ${navigator.language}<br>
-      Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}<br>
-      Screen: ${screen.width} x ${screen.height}, ${screen.colorDepth}-bit
-    `);
+/* ── 8. Location ── */
+window.requestLocation = function() {
+  document.getElementById('locBtn').textContent = '⏳ Requesting…';
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude.toFixed(5);
+    const lon = pos.coords.longitude.toFixed(5);
+    const acc = pos.coords.accuracy.toFixed(1);
+    document.getElementById('location-info').innerHTML =
+      row('Latitude',  lat, 'danger') +
+      row('Longitude', lon, 'danger') +
+      row('Accuracy',  acc + ' meters', 'warn') +
+      row('Altitude',  pos.coords.altitude ? pos.coords.altitude + ' m' : 'N/A') +
+      `<a href="https://www.openstreetmap.org/#map=15/${lat}/${lon}" target="_blank" class="copy-btn" style="display:inline-block;margin-top:12px;">🗺 Open on Map</a>` +
+      `<div class="edu-callout"><strong>You just proved it.</strong> Any site could have done that with your permission.</div>`;
+    addScore(18);
+  }, () => {
+    document.getElementById('location-info').innerHTML = row('Status', 'Permission denied ✓', 'success') +
+      '<div class="edu-callout">Good call. You can deny geolocation in browser settings permanently.</div>';
+  });
+};
 
-    // Hardware Info
-    addInfo("hardware", "Hardware", `
-      CPU Cores: ${navigator.hardwareConcurrency || "N/A"}<br>
-      RAM: ${navigator.deviceMemory || "N/A"} GB<br>
-      Pixel Ratio: ${window.devicePixelRatio}
-    `);
+/* ── 9. Media Devices ── */
+if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+  navigator.mediaDevices.enumerateDevices().then(devs => {
+    const counts = { audioinput:0, audiooutput:0, videoinput:0 };
+    devs.forEach(d => { if (counts[d.kind] !== undefined) counts[d.kind]++; });
+    document.getElementById('devices-info').innerHTML =
+      row('Cameras',     counts.videoinput,  'warn') +
+      row('Microphones', counts.audioinput,  'warn') +
+      row('Speakers',    counts.audiooutput, 'warn') +
+      row('Total Devices', devs.length, 'accent');
+    const tags = devs.map(d => `<span class="tag">${d.kind.replace('input','').replace('output','out')}</span>`);
+    document.getElementById('devices-info').innerHTML += `<div class="tag-row">${tags.join('')}</div>`;
+    addScore(8);
+  });
+} else {
+  document.getElementById('devices-info').innerHTML = row('Status', 'Not available');
+}
 
-    // Network Info
-    let netInfo = "Not available";
-    if (navigator.connection) {
-      netInfo = `
-        Type: ${navigator.connection.effectiveType}<br>
-        Downlink: ${navigator.connection.downlink} Mbps<br>
-        RTT: ${navigator.connection.rtt} ms
-      `;
-    }
-    addInfo("network", "Network", netInfo);
+/* ── 10. Orientation ── */
+window.addEventListener('deviceorientation', e => {
+  document.getElementById('o-alpha').textContent = e.alpha ? e.alpha.toFixed(1) + '°' : '—';
+  document.getElementById('o-beta').textContent  = e.beta  ? e.beta.toFixed(1)  + '°' : '—';
+  document.getElementById('o-gamma').textContent = e.gamma ? e.gamma.toFixed(1) + '°' : '—';
+});
+window.addEventListener('devicemotion', e => {
+  const a = e.acceleration;
+  if (a) {
+    document.getElementById('m-x').textContent = (a.x||0).toFixed(2) + ' m/s²';
+    document.getElementById('m-y').textContent = (a.y||0).toFixed(2) + ' m/s²';
+  }
+});
 
-    // Battery Info
-    if (navigator.getBattery) {
-      navigator.getBattery().then(b => {
-        addInfo("battery", "Battery", `
-          Level: ${(b.level * 100)}%<br>
-          Charging: ${b.charging}
-        `);
-      });
-    } else {
-      addInfo("battery", "Battery", "Not available");
-    }
-
-    // Geolocation
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        addInfo("location", "Location", `
-          Latitude: ${pos.coords.latitude}<br>
-          Longitude: ${pos.coords.longitude}<br>
-          Accuracy: ${pos.coords.accuracy} meters
-        `);
-      }, () => {
-        addInfo("location", "Location", "Permission denied or unavailable");
-      });
-    }
-
-    // Public IP
-    fetch("https://ipinfo.io/json?token=YOUR_TOKEN_HERE") // optional: add free token
-      .then(res => res.json())
-      .then(data => {
-        addInfo("ip", "Public IP", `
-          IP: ${data.ip}<br>
-          City: ${data.city}<br>
-          Region: ${data.region}<br>
-          Country: ${data.country}<br>
-          ISP: ${data.org}
-        `);
-      }).catch(() => {
-        addInfo("ip", "Public IP", "Unable to fetch");
-      });
-
-    // GPU Info
-    try {
-      const canvas = document.createElement("canvas");
-      const gl = canvas.getContext("webgl");
-      const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
-      const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-      const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-      addInfo("gpu", "GPU", `Vendor: ${vendor}<br>Renderer: ${renderer}`);
-    } catch {
-      addInfo("gpu", "GPU", "Not available");
-    }
-
-    // Media Devices
-    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-      navigator.mediaDevices.enumerateDevices().then(devices => {
-        addInfo("devices", "Media Devices", devices.map(d => `${d.kind}: ${d.label || "Unknown"}`).join("<br>"));
-      });
-    }
-
-    // Orientation
-    window.addEventListener("deviceorientation", e => {
-      addInfo("orientation", "Orientation", `
-        Alpha: ${e.alpha}<br>
-        Beta: ${e.beta}<br>
-        Gamma: ${e.gamma}
-      `);
+/* ── 11. Storage ── */
+(function() {
+  let quota = '—';
+  if (navigator.storage && navigator.storage.estimate) {
+    navigator.storage.estimate().then(est => {
+      const used = (est.usage / 1048576).toFixed(2);
+      const avail= (est.quota / 1048576).toFixed(2);
+      document.getElementById('storage-quota').textContent = `${used} / ${avail} MB`;
     });
+  }
+  const lsSize = (() => { try { let s=0; for(let k in localStorage) s+=localStorage[k].length+k.length; return (s/1024).toFixed(2)+' KB'; } catch(e){ return 'N/A'; } })();
+  document.getElementById('storage-info').innerHTML =
+    row('Cookies Enabled',   navigator.cookieEnabled ? 'Yes' : 'No', navigator.cookieEnabled ? 'warn':'success') +
+    row('localStorage',      typeof localStorage !== 'undefined' ? 'Available' : 'No', 'warn') +
+    row('sessionStorage',    typeof sessionStorage !== 'undefined' ? 'Available' : 'No') +
+    row('IndexedDB',         typeof indexedDB !== 'undefined' ? 'Available' : 'No') +
+    row('Cache API',         typeof caches !== 'undefined' ? 'Available' : 'No') +
+    row('localStorage Size', lsSize) +
+    `<div id="storage-quota-row">${row('Storage Quota', '<span id="storage-quota">calculating…</span>')}</div>`;
+  addScore(5);
+})();
 
-    // Other Info
-    addInfo("other", "Other", `
-      Cookies Enabled: ${navigator.cookieEnabled}<br>
-      Local Storage: ${typeof localStorage !== "undefined"}<br>
-      Session Storage: ${typeof sessionStorage !== "undefined"}
-    `);
+/* ── 12. Canvas Fingerprint ── */
+(function() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 240; canvas.height = 60;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#f60';
+  ctx.fillRect(0, 0, 240, 60);
+  ctx.font = '16px "Arial"';
+  ctx.fillStyle = '#069';
+  ctx.fillText('BrowserInfo ✓ 🦊', 4, 24);
+  ctx.font = '12px "Times New Roman"';
+  ctx.fillStyle = 'rgba(102,204,0,0.7)';
+  ctx.fillText('Cwm fjordbank glyphs vext quiz', 4, 44);
+  const dataURL = canvas.toDataURL();
+  // Simple hash
+  let hash = 0;
+  for (let i = 0; i < dataURL.length; i++) {
+    hash = ((hash << 5) - hash) + dataURL.charCodeAt(i);
+    hash |= 0;
+  }
+  const hex = Math.abs(hash).toString(16).padStart(8, '0').toUpperCase();
+  document.getElementById('fp-hash').textContent = hex;
+  document.getElementById('fp-raw').textContent  = dataURL.substring(0, 120) + '…';
+  addScore(12);
+})();
 
-    // Theme Toggle
-    function toggleTheme() {
-      const isLight = document.body.style.background === "white";
-      if (isLight) {
-        // Dark mode
-        document.body.style.background = "#121212";
-        document.body.style.color = "#eee";
-        document.querySelector("header").style.background = "#1f1f1f";
-        document.querySelector("header").style.color = "#eee";
-        document.querySelectorAll(".card").forEach(c => {
-          c.style.background = "#1e1e1e";
-          c.style.color = "#eee";
-        });
-      } else {
-        // Light mode
-        document.body.style.background = "white";
-        document.body.style.color = "#000";
-        document.querySelector("header").style.background = "#f0f0f0";
-        document.querySelector("header").style.color = "#000";
-        document.querySelectorAll(".card").forEach(c => {
-          c.style.background = "#f9f9f9";
-          c.style.color = "#000";
-        });
-      }
+/* ── 13. Permissions ── */
+(function() {
+  const perms = ['camera','microphone','geolocation','notifications','clipboard-read','clipboard-write','accelerometer','gyroscope'];
+  Promise.all(
+    perms.map(p =>
+      navigator.permissions.query({ name: p })
+        .then(r => ({ name: p, state: r.state }))
+        .catch(() => ({ name: p, state: 'unsupported' }))
+    )
+  ).then(results => {
+    const stateClass = s => s === 'granted' ? 'danger' : s === 'denied' ? 'success' : '';
+    const stateIcon  = s => s === 'granted' ? '🔓' : s === 'denied' ? '🔒' : '—';
+    document.getElementById('permissions-info').innerHTML =
+      results.map(r => row(r.name, `${stateIcon(r.state)} ${r.state}`, stateClass(r.state))).join('');
+    addScore(6);
+  }).catch(() => {
+    document.getElementById('permissions-info').innerHTML = row('Status', 'Permissions API not available');
+  });
+})();
+
+/* ── 14. Font Probe ── */
+(function() {
+  const testFonts = [
+    'Arial','Georgia','Times New Roman','Courier New','Verdana',
+    'Helvetica','Trebuchet MS','Impact','Comic Sans MS',
+    'Palatino','Garamond','Bookman','Tahoma',
+    'Arial Black','Lucida Console'
+  ];
+  const canvas = document.createElement('canvas');
+  const ctx    = canvas.getContext('2d');
+  const base   = 'monospace';
+  ctx.font     = `16px ${base}`;
+  const baseW  = ctx.measureText('mmmmwwwwlllliiii').width;
+  const found  = testFonts.filter(f => {
+    ctx.font = `16px '${f}', ${base}`;
+    return ctx.measureText('mmmmwwwwlllliiii').width !== baseW;
+  });
+  document.getElementById('fonts-info').innerHTML =
+    row('Fonts Detected', found.length + ' / ' + testFonts.length, found.length > 8 ? 'danger' : 'warn') +
+    `<div class="tag-row">${found.map(f=>`<span class="tag">${f}</span>`).join('')}</div>`;
+  addScore(8);
+})();
+
+/* ── Nav filter ── */
+window.filterCards = function(cat) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.card').forEach(c => {
+    if (cat === 'all' || (c.dataset.cat || '').includes(cat)) {
+      c.style.display = '';
+    } else {
+      c.style.display = 'none';
     }
-  </script>
+  });
+};
+</script>
 </body>
 </html>
